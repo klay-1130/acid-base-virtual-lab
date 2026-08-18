@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>산과 염기 가상실험실</title>
+<style>
+  :root {
+    --bg: #eef4f3;
+    --bg-panel: #ffffff;
+    --bg-inset: #f4f8f7;
+    --ink: #16242a;
+    --ink-soft: #4c6066;
+    --ink-faint: #7c8f8c;
+    --accent: #2f8f7f;
+    --accent-strong: #1f6f61;
+    --accent-wash: #e2f0ec;
+    --amber: #b5791f;
+    --amber-wash: #f7ecd9;
+    --line: #d7e2e0;
+    --line-strong: #b9c9c6;
+    --good: #2f8f5f;
+    --bad: #bf4a3f;
+    --acid: #d3ab2e;
+    --neutral: #4f9e6c;
+    --base: #3f7fc7;
+    --phen: #c65a9e;
+    --mred-red: #c94b3f;
+    --mred-orange: #e2883a;
+    --mred-yellow: #d9b23a;
+    --shadow: 0 1px 2px rgba(20, 40, 38, 0.06), 0 8px 24px -12px rgba(20, 40, 38, 0.18);
+    --font-display: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+      "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR",
+      "Malgun Gothic", sans-serif;
+    --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e1517;
+      --bg-panel: #172023;
+      --bg-inset: #131b1d;
+      --ink: #e7f0ee;
+      --ink-soft: #a3b6b3;
+      --ink-faint: #6d8380;
+      --accent: #4fd1b8;
+      --accent-strong: #7de3cc;
+      --accent-wash: #16302b;
+      --amber: #e0a94f;
+      --amber-wash: #2c2213;
+      --line: #253032;
+      --line-strong: #34423f;
+      --good: #56c58a;
+      --bad: #e2776c;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 28px -14px rgba(0, 0, 0, 0.55);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1517;
+    --bg-panel: #172023;
+    --bg-inset: #131b1d;
+    --ink: #e7f0ee;
+    --ink-soft: #a3b6b3;
+    --ink-faint: #6d8380;
+    --accent: #4fd1b8;
+    --accent-strong: #7de3cc;
+    --accent-wash: #16302b;
+    --amber: #e0a94f;
+    --amber-wash: #2c2213;
+    --line: #253032;
+    --line-strong: #34423f;
+    --good: #56c58a;
+    --bad: #e2776c;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 28px -14px rgba(0, 0, 0, 0.55);
+  }
+  :root[data-theme="light"] {
+    --bg: #eef4f3;
+    --bg-panel: #ffffff;
+    --bg-inset: #f4f8f7;
+    --ink: #16242a;
+    --ink-soft: #4c6066;
+    --ink-faint: #7c8f8c;
+    --accent: #2f8f7f;
+    --accent-strong: #1f6f61;
+    --accent-wash: #e2f0ec;
+    --amber: #b5791f;
+    --amber-wash: #f7ecd9;
+    --line: #d7e2e0;
+    --line-strong: #b9c9c6;
+    --good: #2f8f5f;
+    --bad: #bf4a3f;
+    --shadow: 0 1px 2px rgba(20, 40, 38, 0.06), 0 8px 24px -12px rgba(20, 40, 38, 0.18);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+
+  .wrap {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 28px 20px 80px;
+  }
+
+  /* ---------- Header / notebook card ---------- */
+  .labhead {
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background:
+      repeating-linear-gradient(
+        var(--bg-panel) 0px, var(--bg-panel) 27px, var(--line) 27px, var(--line) 28px
+      );
+    background-color: var(--bg-panel);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .labhead::before {
+    content: "";
+    position: absolute;
+    left: 54px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--bad);
+    opacity: 0.28;
+  }
+  .labhead-inner {
+    padding: 26px 26px 24px 76px;
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent-strong);
+    font-weight: 600;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(24px, 4vw, 32px);
+    letter-spacing: -0.01em;
+    margin: 4px 0 6px;
+    text-wrap: balance;
+  }
+  .labhead p.sub {
+    margin: 0 0 16px;
+    color: var(--ink-soft);
+    font-size: 15px;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px 20px;
+    margin-top: 16px;
+    font-size: 13.5px;
+  }
+  .meta-grid dt {
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .meta-grid dd {
+    margin: 2px 0 0;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- Tabs ---------- */
+  .tabbar {
+    display: flex;
+    gap: 6px;
+    margin: 22px 0 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .tab {
+    appearance: none;
+    border: none;
+    background: none;
+    font: inherit;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 14.5px;
+    color: var(--ink-faint);
+    padding: 10px 14px 12px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tab .num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tab[aria-selected="true"] {
+    color: var(--ink);
+    border-bottom-color: var(--accent);
+  }
+  .tab[aria-selected="true"] .num {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg-panel);
+  }
+  .tab:hover { color: var(--ink); }
+  .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+  .panel { display: none; animation: fadein 0.25s ease; }
+  .panel.active { display: block; }
+  @keyframes fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  .card {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 20px 22px;
+  }
+  .card + .card { margin-top: 18px; }
+  h2 {
+    font-family: var(--font-display);
+    font-size: 19px;
+    font-weight: 800;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+  .card-note {
+    color: var(--ink-soft);
+    font-size: 13.5px;
+    margin: 0 0 16px;
+  }
+
+  /* ---------- Exp 1: indicator picker ---------- */
+  .indicator-picker {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .ind-btn {
+    appearance: none;
+    cursor: pointer;
+    font: inherit;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 13.5px;
+    padding: 9px 14px;
+    border-radius: 10px;
+    border: 1.5px solid var(--line-strong);
+    background: var(--bg-inset);
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ind-btn .swatch {
+    width: 12px; height: 12px; border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.15);
+  }
+  .ind-btn[aria-pressed="true"] {
+    border-color: var(--accent);
+    background: var(--accent-wash);
+    color: var(--accent-strong);
+  }
+  .ind-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .tube-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+    gap: 14px 12px;
+  }
+  .tube-card {
+    text-align: center;
+    padding: 10px 6px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--bg-inset);
+  }
+  .tube {
+    width: 34px;
+    height: 84px;
+    margin: 0 auto 8px;
+    border: 2px solid var(--line-strong);
+    border-top: none;
+    border-radius: 0 0 14px 14px;
+    position: relative;
+    background: linear-gradient(180deg, transparent 0 60%, rgba(0,0,0,0.02) 60%);
+    overflow: hidden;
+  }
+  .tube::before {
+    content: "";
+    position: absolute;
+    left: -2px; right: -2px; top: -2px;
+    height: 3px;
+    background: var(--line-strong);
+  }
+  .tube-liquid {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 62%;
+    background: var(--liquid, #cfe0dd);
+    transition: background 0.35s ease;
+  }
+  .tube-liquid.empty { background: transparent; }
+  .tube-name {
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.3;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tube-ph {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-bottom: 8px;
+  }
+  .drop-row {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+  }
+  .drop-btn {
+    appearance: none;
+    cursor: pointer;
+    font: inherit;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    width: 26px;
+    height: 22px;
+    border-radius: 6px;
+    border: 1px solid var(--line-strong);
+    background: var(--bg-panel);
+    color: var(--ink-soft);
+  }
+  .drop-btn.done {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg-panel);
+  }
+  .drop-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .drop-btn:disabled { cursor: default; }
+
+  table.log {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    margin-top: 4px;
+  }
+  table.log th, table.log td {
+    text-align: left;
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  table.log th {
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-faint);
+    font-weight: 700;
+  }
+  table.log td.result-cell { font-family: var(--font-mono); font-size: 12.5px; color: var(--ink-soft); }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: var(--font-body);
+  }
+  .pill.acid { background: #fbf1d8; color: #8a6412; }
+  .pill.neutral { background: #e4f3e8; color: #2c6b45; }
+  .pill.base { background: #e3edfb; color: #2a5490; }
+  :root[data-theme="dark"] .pill.acid, @media (prefers-color-scheme: dark) { }
+  .pill.pending { background: var(--bg-inset); color: var(--ink-faint); border: 1px dashed var(--line-strong); }
+
+  /* ---------- Exp 2: titration ---------- */
+  .titration-grid {
+    display: grid;
+    grid-template-columns: minmax(220px, 300px) 1fr;
+    gap: 22px;
+  }
+  @media (max-width: 720px) {
+    .titration-grid { grid-template-columns: 1fr; }
+  }
+  .apparatus { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .readout-row {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+  }
+  .readout {
+    flex: 1;
+    background: var(--bg-inset);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 8px 10px;
+    text-align: center;
+  }
+  .readout .label { font-size: 11px; color: var(--ink-faint); font-weight: 700; letter-spacing: 0.03em; }
+  .readout .value { font-family: var(--font-mono); font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .btn {
+    appearance: none;
+    cursor: pointer;
+    font: inherit;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 13.5px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1.5px solid var(--accent);
+    background: var(--accent);
+    color: var(--bg-panel);
+  }
+  .btn.secondary {
+    background: var(--bg-panel);
+    color: var(--accent-strong);
+  }
+  .btn.ghost {
+    background: transparent;
+    border-color: var(--line-strong);
+    color: var(--ink-soft);
+  }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn:focus-visible, .btn.secondary:focus-visible, .btn.ghost:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .graph-wrap { min-width: 0; }
+  .legend-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 8px;
+  }
+  .legend-row .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+
+  .mission {
+    margin-top: 18px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: var(--amber-wash);
+    border: 1px solid color-mix(in srgb, var(--amber) 40%, var(--line));
+  }
+  .mission h3 { margin: 0 0 6px; font-size: 14.5px; font-family: var(--font-display); }
+  .mission p { margin: 0 0 10px; font-size: 13.5px; color: var(--ink-soft); }
+  .mission-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .mission-form input {
+    font: inherit;
+    font-family: var(--font-mono);
+    width: 90px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1.5px solid var(--line-strong);
+    background: var(--bg-panel);
+    color: var(--ink);
+  }
+  .mission-form input:focus-visible { outline: 2px solid var(--accent); }
+  .feedback { margin-top: 10px; font-size: 13.5px; font-weight: 700; display: none; }
+  .feedback.show { display: block; }
+  .feedback.good { color: var(--good); }
+  .feedback.bad { color: var(--bad); }
+
+  /* ---------- Summary ---------- */
+  .concept-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .concept-table th, .concept-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+  }
+  .concept-table th { font-size: 11.5px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.04em; }
+  .swatch-cell { display: flex; align-items: center; gap: 8px; }
+  .swatch-lg { width: 20px; height: 20px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.12); flex-shrink: 0; }
+
+  .quiz-card {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    background: var(--bg-inset);
+  }
+  .quiz-card.correct { border-color: var(--good); background: color-mix(in srgb, var(--good) 10%, var(--bg-inset)); }
+  .quiz-card.incorrect { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 10%, var(--bg-inset)); }
+  .quiz-q { font-weight: 700; font-size: 14px; margin-bottom: 10px; }
+  .quiz-options { display: flex; flex-direction: column; gap: 7px; }
+  .quiz-options label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+    cursor: pointer;
+  }
+  .quiz-explain { margin-top: 8px; font-size: 12.5px; color: var(--ink-soft); display: none; }
+  .quiz-card.graded .quiz-explain { display: block; }
+  .score-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  .overflow-x { overflow-x: auto; }
+
+  footer.note {
+    margin-top: 26px;
+    font-size: 12px;
+    color: var(--ink-faint);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="labhead">
+    <div class="labhead-inner">
+      <div class="eyebrow">가상실험 · 통합과학2 · 산과 염기</div>
+      <h1>산과 염기 가상실험실</h1>
+      <p class="sub">지시약으로 용액의 액성을 구별하고, 중화 적정 시뮬레이션으로 당량점을 찾아본다.</p>
+      <dl class="meta-grid">
+        <div><dt>실험 목표</dt><dd>지시약 반응으로 산·염기를 구별하고, 중화반응에서 pH 변화를 설명할 수 있다.</dd></div>
+        <div><dt>가상 준비물</dt><dd>메틸레드·BTB·페놀프탈레인 용액, 시험관 10개, 뷰렛(NaOH), 삼각플라스크(HCl)</dd></div>
+        <div><dt>진행 순서</dt><dd>실험 1 → 실험 2 → 정리 및 확인문제 (아래 탭에서 이동)</dd></div>
+      </dl>
+    </div>
+  </header>
+
+  <nav class="tabbar" role="tablist" aria-label="실험 단계">
+    <button class="tab" role="tab" aria-selected="true" data-panel="p1"><span class="num">1</span>지시약으로 구별하기</button>
+    <button class="tab" role="tab" aria-selected="false" data-panel="p2"><span class="num">2</span>중화 적정 시뮬레이션</button>
+    <button class="tab" role="tab" aria-selected="false" data-panel="p3"><span class="num">3</span>정리 · 확인문제</button>
+  </nav>
+
+  <!-- ===================== PANEL 1 ===================== -->
+  <section class="panel active" id="p1">
+    <div class="card">
+      <h2>실험 1 — 지시약으로 산·염기 구별하기</h2>
+      <p class="card-note">아래에서 지시약을 하나 고른 뒤, 시험관 밑의 약자 버튼(메·B·페)을 눌러 그 용액에 떨어뜨려 보세요. 세 지시약을 모두 시험하면 자동으로 액성이 판별됩니다.</p>
+
+      <div class="indicator-picker" role="group" aria-label="지시약 선택">
+        <button class="ind-btn" data-ind="mred" aria-pressed="true"><span class="swatch" style="background:#c94b3f"></span>메틸레드 용액</button>
+        <button class="ind-btn" data-ind="btb" aria-pressed="false"><span class="swatch" style="background:#4f9e6c"></span>BTB 용액</button>
+        <button class="ind-btn" data-ind="phen" aria-pressed="false"><span class="swatch" style="background:#c65a9e"></span>페놀프탈레인 용액</button>
+      </div>
+
+      <div class="tube-grid" id="tubeGrid"></div>
+    </div>
+
+    <div class="card">
+      <h2>관찰 기록표</h2>
+      <p class="card-note">시험할 때마다 자동으로 채워집니다. 세 지시약 결과가 모두 모이면 판정이 나타납니다.</p>
+      <div class="overflow-x">
+        <table class="log">
+          <thead>
+            <tr><th>용액</th><th>메틸레드</th><th>BTB</th><th>페놀프탈레인</th><th>판정</th></tr>
+          </thead>
+          <tbody id="logBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== PANEL 2 ===================== -->
+  <section class="panel" id="p2">
+    <div class="card">
+      <h2>실험 2 — 중화 적정 시뮬레이션</h2>
+      <p class="card-note">삼각플라스크에는 묽은 염산(HCl) 10&nbsp;mL와 BTB 용액 두 방울이 들어 있습니다. 뷰렛의 수산화나트륨(NaOH) 수용액을 조금씩 떨어뜨리며 색 변화와 pH를 관찰하세요.</p>
+
+      <div class="titration-grid">
+        <div class="apparatus">
+          <svg id="apparatusSvg" viewBox="0 0 200 320" width="200" height="320" role="img" aria-label="뷰렛과 삼각플라스크 장치도"></svg>
+          <div class="readout-row">
+            <div class="readout">
+              <div class="label">넣은 NaOH</div>
+              <div class="value" id="volReadout">0.0 mL</div>
+            </div>
+            <div class="readout">
+              <div class="label">추정 pH</div>
+              <div class="value" id="phReadout">1.0</div>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn" id="addCoarse">+1 mL 추가</button>
+            <button class="btn secondary" id="addFine">+0.2 mL (정밀 관찰)</button>
+            <button class="btn ghost" id="resetTitration">적정 초기화</button>
+          </div>
+        </div>
+
+        <div class="graph-wrap">
+          <svg id="graphSvg" viewBox="0 0 460 280" width="100%" height="280" role="img" aria-label="적정 곡선: 넣은 부피에 따른 pH 변화 그래프"></svg>
+          <div class="legend-row">
+            <span><span class="dot" style="background:#d3ab2e"></span>산성 (노랑)</span>
+            <span><span class="dot" style="background:#4f9e6c"></span>중성 (초록)</span>
+            <span><span class="dot" style="background:#3f7fc7"></span>염기성 (파랑)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mission">
+        <h3>미션 — 당량점(중화점)을 찾아라</h3>
+        <p>플라스크 속 용액이 초록색으로 변하는 순간이 당량점입니다. 그때까지 넣은 NaOH의 부피(mL)를 예상해 입력해 보세요.</p>
+        <div class="mission-form">
+          <input type="number" id="missionInput" min="0" max="20" step="0.1" placeholder="예: 10" aria-label="당량점 부피 입력(mL)">
+          <button class="btn" id="checkMission">확인하기</button>
+        </div>
+        <div class="feedback" id="missionFeedback"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== PANEL 3 ===================== -->
+  <section class="panel" id="p3">
+    <div class="card">
+      <h2>개념 정리 — 지시약의 색 변화</h2>
+      <div class="overflow-x">
+        <table class="concept-table">
+          <thead><tr><th>지시약</th><th>산성</th><th>중성 부근</th><th>염기성</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>메틸레드 용액</td>
+              <td class="swatch-cell"><span class="swatch-lg" style="background:#c94b3f"></span>붉은색 (pH&lt;4.4)</td>
+              <td class="swatch-cell"><span class="swatch-lg" style="background:#e2883a"></span>주황색 (pH 4.4~6.2)</td>
+              <td class="swatch-cell"><span class="swatch-lg" style="background:#d9b23a"></span>노란색 (pH&gt;6.2)</td>
+            </tr>
+            <tr>
+              <td>BTB 용액</td>
+              <td class="swatch-cell"><span class="swatch-lg" style="background:#d3ab2e"></span>노란색</td>
+              <td class="swatch-cell"><span class="swatch-lg" style="background:#4f9e6c"></span>초록색</td>
+              <td class="swatch-cell"><span class="swatch-lg" style="background:#3f7fc7"></span>파란색</td>
+            </tr>
+            <tr>
+              <td>페놀프탈레인 용액</td>
+              <td class="swatch-cell"><span class="swatch-lg" style="background:#f2ede1;border-color:#c9c2b0"></span>무색</td>
+              <td class="swatch-cell"><span class="swatch-lg" style="background:#f2ede1;border-color:#c9c2b0"></span>무색</td>
+              <td class="swatch-cell"><span class="swatch-lg" style="background:#c65a9e"></span>붉은(분홍)색</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="card-note" style="margin-top:14px; margin-bottom:6px;">메틸레드는 변색 범위(pH 4.4~6.2)가 중성(pH 7)과 정확히 일치하지 않으며, pH 6.2 이상에서는 모두 노란색으로 보여 염기성의 세기를 구별하지 못한다. 그래서 산성인지 아닌지를 판별할 때 주로 사용한다.</p>
+      <p class="card-note" style="margin-top:0; margin-bottom:0;">중화반응: 산과 염기가 반응하여 물과 염을 생성하는 반응. 당량점에서는 산의 H⁺ 수와 염기의 OH⁻ 수가 같아져 용액이 중성(pH 7)에 가까워진다.</p>
+    </div>
+
+    <div class="card">
+      <h2>확인 문제</h2>
+      <div class="score-banner"><span id="scoreText">아직 채점 전입니다</span><span id="scoreCount">0 / 4</span></div>
+      <div id="quizList"></div>
+      <button class="btn" id="gradeQuiz">채점하기</button>
+    </div>
+  </section>
+
+  <footer class="note">가상실험 시뮬레이션 · 실제 pH·색상 값은 교육용으로 단순화되었습니다.</footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------------- Tabs ---------------- */
+  var tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
+  var panels = { p1: document.getElementById("p1"), p2: document.getElementById("p2"), p3: document.getElementById("p3") };
+  tabs.forEach(function (t) {
+    t.addEventListener("click", function () {
+      tabs.forEach(function (o) { o.setAttribute("aria-selected", "false"); });
+      t.setAttribute("aria-selected", "true");
+      Object.keys(panels).forEach(function (k) { panels[k].classList.remove("active"); });
+      panels[t.dataset.panel].classList.add("active");
+    });
+  });
+
+  /* ---------------- Experiment 1 ---------------- */
+  var solutions = [
+    { id: "hcl", name: "묽은 염산", ph: 1 },
+    { id: "lemon", name: "레몬즙", ph: 2.5 },
+    { id: "vinegar", name: "식초", ph: 3 },
+    { id: "soda", name: "탄산음료", ph: 4.5 },
+    { id: "milk", name: "우유", ph: 6.4 },
+    { id: "water", name: "증류수", ph: 7 },
+    { id: "bakingsoda", name: "베이킹소다 수용액", ph: 8.5 },
+    { id: "soap", name: "비눗물", ph: 9 },
+    { id: "ammonia", name: "암모니아수", ph: 11 },
+    { id: "naoh", name: "수산화나트륨 수용액", ph: 13 }
+  ];
+  var indicators = [
+    { id: "mred", label: "메틸레드", short: "메" },
+    { id: "btb", label: "BTB", short: "B" },
+    { id: "phen", label: "페놀프탈레인", short: "페" }
+  ];
+
+  function indicatorColor(ind, ph) {
+    if (ind === "mred") {
+      if (ph < 4.4) return { css: "#c94b3f", label: "붉은색" };
+      if (ph > 6.2) return { css: "#d9b23a", label: "노란색" };
+      return { css: "#e2883a", label: "주황색" };
+    }
+    if (ind === "btb") {
+      if (ph < 6) return { css: "#d3ab2e", label: "노란색" };
+      if (ph > 7.6) return { css: "#3f7fc7", label: "파란색" };
+      return { css: "#4f9e6c", label: "초록색" };
+    }
+    if (ph >= 8.2) return { css: "#c65a9e", label: "붉은(분홍)색" };
+    return { css: "#f2ede1", label: "무색" };
+  }
+
+  function classify(ph) {
+    if (ph < 6.5) return { key: "acid", label: "산성" };
+    if (ph > 7.5) return { key: "base", label: "염기성" };
+    return { key: "neutral", label: "중성" };
+  }
+
+  var currentIndicator = "mred";
+  var results = {}; // results[solutionId][indicatorId] = {css,label}
+  solutions.forEach(function (s) { results[s.id] = {}; });
+
+  var indBtns = Array.prototype.slice.call(document.querySelectorAll(".ind-btn"));
+  indBtns.forEach(function (b) {
+    b.addEventListener("click", function () {
+      indBtns.forEach(function (o) { o.setAttribute("aria-pressed", "false"); });
+      b.setAttribute("aria-pressed", "true");
+      currentIndicator = b.dataset.ind;
+    });
+  });
+
+  var tubeGrid = document.getElementById("tubeGrid");
+  solutions.forEach(function (s) {
+    var card = document.createElement("div");
+    card.className = "tube-card";
+
+    var tube = document.createElement("div");
+    tube.className = "tube";
+    var liquid = document.createElement("div");
+    liquid.className = "tube-liquid empty";
+    liquid.id = "liquid-" + s.id;
+    tube.appendChild(liquid);
+    card.appendChild(tube);
+
+    var name = document.createElement("div");
+    name.className = "tube-name";
+    name.textContent = s.name;
+    card.appendChild(name);
+
+    var phEl = document.createElement("div");
+    phEl.className = "tube-ph";
+    phEl.textContent = "pH ?";
+    card.appendChild(phEl);
+
+    var row = document.createElement("div");
+    row.className = "drop-row";
+    indicators.forEach(function (ind) {
+      var btn = document.createElement("button");
+      btn.className = "drop-btn";
+      btn.type = "button";
+      btn.textContent = ind.short;
+      btn.title = ind.label + " 떨어뜨리기";
+      btn.id = "drop-" + s.id + "-" + ind.id;
+      btn.addEventListener("click", function () {
+        var res = indicatorColor(ind.id, s.ph);
+        results[s.id][ind.id] = res;
+        liquid.classList.remove("empty");
+        liquid.style.setProperty("--liquid", res.css);
+        liquid.style.background = res.css;
+        btn.classList.add("done");
+        updateLogRow(s.id);
+      });
+      row.appendChild(btn);
+    });
+    card.appendChild(row);
+
+    tubeGrid.appendChild(card);
+  });
+
+  var logBody = document.getElementById("logBody");
+  solutions.forEach(function (s) {
+    var tr = document.createElement("tr");
+    tr.id = "log-" + s.id;
+    tr.innerHTML =
+      "<td>" + s.name + "</td>" +
+      '<td class="result-cell" id="log-' + s.id + '-mred">-</td>' +
+      '<td class="result-cell" id="log-' + s.id + '-btb">-</td>' +
+      '<td class="result-cell" id="log-' + s.id + '-phen">-</td>' +
+      '<td id="log-' + s.id + '-verdict"><span class="pill pending">미확인</span></td>';
+    logBody.appendChild(tr);
+  });
+
+  function updateLogRow(sid) {
+    indicators.forEach(function (ind) {
+      var cell = document.getElementById("log-" + sid + "-" + ind.id);
+      var r = results[sid][ind.id];
+      if (r) cell.textContent = r.label;
+    });
+    var verdictCell = document.getElementById("log-" + sid + "-verdict");
+    var allDone = indicators.every(function (ind) { return results[sid][ind.id]; });
+    if (allDone) {
+      var s = solutions.filter(function (x) { return x.id === sid; })[0];
+      var c = classify(s.ph);
+      verdictCell.innerHTML = '<span class="pill ' + c.key + '">' + c.label + " · pH " + s.ph + "</span>";
+    }
+  }
+
+  /* ---------------- Experiment 2: titration ---------------- */
+  var volume = 0; // mL of NaOH added
+  var maxVolume = 20;
+  var points = [{ v: 0, ph: 1 }];
+
+  function phAt(v) {
+    var raw = 7 + 6 * Math.tanh((v - 10) / 0.9);
+    return Math.max(0.5, Math.min(13.5, raw));
+  }
+  function colorForPh(ph) {
+    if (ph < 6) return "#d3ab2e";
+    if (ph > 7.6) return "#3f7fc7";
+    return "#4f9e6c";
+  }
+
+  var apparatusSvg = document.getElementById("apparatusSvg");
+  var graphSvg = document.getElementById("graphSvg");
+  var volReadout = document.getElementById("volReadout");
+  var phReadout = document.getElementById("phReadout");
+
+  function drawApparatus() {
+    var ph = phAt(volume);
+    var liquidColor = colorForPh(ph);
+    var fillFrac = volume / maxVolume; // burette empties as volume increases
+    var buretteTop = 10, buretteBottom = 140, buretteH = buretteBottom - buretteTop;
+    var liquidTopY = buretteTop + fillFrac * buretteH;
+
+    var ticks = "";
+    for (var i = 0; i <= 10; i++) {
+      var y = buretteTop + (i / 10) * buretteH;
+      ticks += '<line x1="86" y1="' + y + '" x2="94" y2="' + y + '" stroke="var(--ink-faint)" stroke-width="1"/>';
+    }
+
+    var flaskTopY = 190, flaskBottomY = 300, flaskTopW = 14, flaskBottomW = 46, flaskCx = 100;
+    var flaskPts = [
+      [flaskCx - flaskTopW, flaskTopY],
+      [flaskCx + flaskTopW, flaskTopY],
+      [flaskCx + flaskBottomW, flaskBottomY],
+      [flaskCx - flaskBottomW, flaskBottomY]
+    ].map(function (p) { return p.join(","); }).join(" ");
+
+    var liquidLevelY = flaskBottomY - 34;
+    var liquidRatio = (liquidLevelY - flaskTopY) / (flaskBottomY - flaskTopY);
+    var liquidTopW = flaskTopW + (flaskBottomW - flaskTopW) * liquidRatio;
+    var liquidPts = [
+      [flaskCx - liquidTopW, liquidLevelY],
+      [flaskCx + liquidTopW, liquidLevelY],
+      [flaskCx + flaskBottomW, flaskBottomY],
+      [flaskCx - flaskBottomW, flaskBottomY]
+    ].map(function (p) { return p.join(","); }).join(" ");
+
+    apparatusSvg.innerHTML =
+      '<rect x="70" y="0" width="60" height="14" rx="3" fill="var(--bg-inset)" stroke="var(--line-strong)"/>' +
+      '<rect x="86" y="' + buretteTop + '" width="16" height="' + buretteH + '" fill="var(--bg-inset)" stroke="var(--line-strong)" stroke-width="1.5"/>' +
+      '<rect x="87" y="' + liquidTopY + '" width="14" height="' + (buretteBottom - liquidTopY) + '" fill="#3f7fc7" opacity="0.75"/>' +
+      ticks +
+      '<polygon points="90,' + buretteBottom + ' 110,' + buretteBottom + ' 100,' + (buretteBottom + 16) + '" fill="var(--bg-inset)" stroke="var(--line-strong)"/>' +
+      '<line x1="100" y1="' + (buretteBottom + 16) + '" x2="100" y2="' + (flaskTopY - 12) + '" stroke="var(--line-strong)" stroke-width="2" stroke-dasharray="2 3"/>' +
+      '<circle cx="100" cy="' + (flaskTopY - 6) + '" r="2.2" fill="#3f7fc7">' +
+        '<animate attributeName="opacity" values="0;1;0" dur="1.1s" repeatCount="indefinite"/>' +
+      '</circle>' +
+      '<rect x="30" y="304" width="140" height="8" rx="2" fill="var(--line-strong)"/>' +
+      '<polygon points="' + flaskPts + '" fill="none" stroke="var(--line-strong)" stroke-width="2"/>' +
+      '<polygon points="' + liquidPts + '" fill="' + liquidColor + '" opacity="0.85"/>';
+
+    volReadout.textContent = volume.toFixed(1) + " mL";
+    phReadout.textContent = ph.toFixed(1);
+  }
+
+  function drawGraph() {
+    var w = 460, h = 280, m = { l: 40, r: 16, t: 16, b: 34 };
+    var innerW = w - m.l - m.r, innerH = h - m.t - m.b;
+    function x(v) { return m.l + (v / maxVolume) * innerW; }
+    function y(ph) { return m.t + (1 - ph / 14) * innerH; }
+
+    var gridlines = "";
+    for (var ph = 0; ph <= 14; ph += 2) {
+      gridlines += '<line x1="' + m.l + '" y1="' + y(ph) + '" x2="' + (w - m.r) + '" y2="' + y(ph) + '" stroke="var(--line)" stroke-width="1"/>';
+      gridlines += '<text x="' + (m.l - 8) + '" y="' + (y(ph) + 4) + '" font-size="10" text-anchor="end" fill="var(--ink-faint)" font-family="var(--font-mono)">' + ph + "</text>";
+    }
+    for (var v = 0; v <= maxVolume; v += 5) {
+      gridlines += '<line x1="' + x(v) + '" y1="' + m.t + '" x2="' + x(v) + '" y2="' + (h - m.b) + '" stroke="var(--line)" stroke-width="1"/>';
+      gridlines += '<text x="' + x(v) + '" y="' + (h - m.b + 16) + '" font-size="10" text-anchor="middle" fill="var(--ink-faint)" font-family="var(--font-mono)">' + v + "</text>";
+    }
+
+    var pathD = points.map(function (p, i) { return (i === 0 ? "M" : "L") + x(p.v) + "," + y(p.ph); }).join(" ");
+    var dots = points.map(function (p) {
+      return '<circle cx="' + x(p.v) + '" cy="' + y(p.ph) + '" r="3" fill="' + colorForPh(p.ph) + '" stroke="var(--bg-panel)" stroke-width="1"/>';
+    }).join("");
+
+    graphSvg.innerHTML =
+      gridlines +
+      '<text x="' + (w / 2) + '" y="' + (h - 4) + '" font-size="11" text-anchor="middle" fill="var(--ink-soft)">넣은 NaOH 부피 (mL)</text>' +
+      '<text x="12" y="' + (h / 2) + '" font-size="11" text-anchor="middle" fill="var(--ink-soft)" transform="rotate(-90 12 ' + (h / 2) + ')">pH</text>' +
+      '<path d="' + pathD + '" fill="none" stroke="var(--accent)" stroke-width="2"/>' +
+      dots;
+  }
+
+  function addVolume(delta) {
+    volume = Math.min(maxVolume, Math.round((volume + delta) * 10) / 10);
+    var ph = phAt(volume);
+    points.push({ v: volume, ph: ph });
+    drawApparatus();
+    drawGraph();
+    document.getElementById("addFine").disabled = !(volume >= 7 && volume < 13);
+    document.getElementById("addCoarse").disabled = volume >= maxVolume;
+  }
+
+  document.getElementById("addCoarse").addEventListener("click", function () { addVolume(1); });
+  document.getElementById("addFine").addEventListener("click", function () { addVolume(0.2); });
+  document.getElementById("resetTitration").addEventListener("click", function () {
+    volume = 0;
+    points = [{ v: 0, ph: 1 }];
+    document.getElementById("addFine").disabled = true;
+    document.getElementById("addCoarse").disabled = false;
+    document.getElementById("missionFeedback").className = "feedback";
+    document.getElementById("missionInput").value = "";
+    drawApparatus();
+    drawGraph();
+  });
+
+  document.getElementById("checkMission").addEventListener("click", function () {
+    var input = document.getElementById("missionInput");
+    var guess = parseFloat(input.value);
+    var fb = document.getElementById("missionFeedback");
+    if (isNaN(guess)) {
+      fb.textContent = "숫자로 부피를 입력해 주세요.";
+      fb.className = "feedback show bad";
+      return;
+    }
+    var tested = points.some(function (p) { return Math.abs(p.v - guess) <= 0.5 && p.ph > 6.5 && p.ph < 7.5; });
+    var within = Math.abs(guess - 10) <= 1;
+    if (within && volume >= guess) {
+      fb.textContent = "정답입니다! 약 10 mL 부근에서 pH가 7에 가까워지며 초록색이 됩니다. 이 지점이 당량점입니다.";
+      fb.className = "feedback show good";
+    } else if (!within) {
+      fb.textContent = "다시 생각해 보세요. 그래프에서 pH가 7에 가장 가까운 지점의 부피를 확인해 보세요.";
+      fb.className = "feedback show bad";
+    } else {
+      fb.textContent = "아직 그 부피까지 실험을 진행하지 않았어요. NaOH를 더 추가해 관찰해 보세요.";
+      fb.className = "feedback show bad";
+    }
+  });
+
+  document.getElementById("addFine").disabled = true;
+  drawApparatus();
+  drawGraph();
+
+  /* ---------------- Quiz ---------------- */
+  var quiz = [
+    {
+      q: "Q1. BTB 용액을 어떤 용액에 넣었더니 노란색으로 변했다. 이 용액의 액성은?",
+      options: ["산성", "중성", "염기성", "알 수 없다"],
+      answer: 0,
+      explain: "BTB 용액은 산성에서 노란색, 중성에서 초록색, 염기성에서 파란색으로 변합니다."
+    },
+    {
+      q: "Q2. 페놀프탈레인 용액을 넣었더니 붉은(분홍)색으로 변했다. 이 용액의 액성은?",
+      options: ["산성", "중성", "염기성", "알 수 없다"],
+      answer: 2,
+      explain: "페놀프탈레인은 산성·중성에서는 무색이고, 염기성에서만 붉은(분홍)색으로 변합니다."
+    },
+    {
+      q: "Q3. 실험 2에서 HCl 10 mL에 NaOH를 정확히 10 mL 넣어 당량점에 도달했다. 이때 혼합 용액의 액성은?",
+      options: ["산성 (pH<7)", "중성 (pH=7)", "염기성 (pH>7)"],
+      answer: 1,
+      explain: "당량점에서는 산의 H⁺ 수와 염기의 OH⁻ 수가 같아져 용액이 중성에 가까워집니다."
+    },
+    {
+      q: "Q4. 산과 염기가 반응하여 물과 염을 생성하는 반응을 무엇이라 하는가?",
+      options: ["산화반응", "중화반응", "치환반응", "이온화반응"],
+      answer: 1,
+      explain: "산과 염기가 만나 물과 염을 생성하는 반응을 중화반응이라고 합니다."
+    }
+  ];
+
+  var quizList = document.getElementById("quizList");
+  quiz.forEach(function (item, qi) {
+    var card = document.createElement("div");
+    card.className = "quiz-card";
+    card.id = "quiz-" + qi;
+
+    var qEl = document.createElement("div");
+    qEl.className = "quiz-q";
+    qEl.textContent = item.q;
+    card.appendChild(qEl);
+
+    var opts = document.createElement("div");
+    opts.className = "quiz-options";
+    item.options.forEach(function (opt, oi) {
+      var label = document.createElement("label");
+      var input = document.createElement("input");
+      input.type = "radio";
+      input.name = "q" + qi;
+      input.value = oi;
+      label.appendChild(input);
+      label.appendChild(document.createTextNode(opt));
+      opts.appendChild(label);
+    });
+    card.appendChild(opts);
+
+    var explain = document.createElement("div");
+    explain.className = "quiz-explain";
+    explain.textContent = item.explain;
+    card.appendChild(explain);
+
+    quizList.appendChild(card);
+  });
+
+  document.getElementById("gradeQuiz").addEventListener("click", function () {
+    var score = 0;
+    quiz.forEach(function (item, qi) {
+      var card = document.getElementById("quiz-" + qi);
+      var chosen = card.querySelector('input[name="q' + qi + '"]:checked');
+      card.classList.add("graded");
+      card.classList.remove("correct", "incorrect");
+      if (chosen && parseInt(chosen.value, 10) === item.answer) {
+        score++;
+        card.classList.add("correct");
+      } else {
+        card.classList.add("incorrect");
+      }
+    });
+    document.getElementById("scoreCount").textContent = score + " / " + quiz.length;
+    document.getElementById("scoreText").textContent = score === quiz.length ? "만점입니다! 훌륭해요." : "틀린 문항의 해설을 확인해 보세요.";
+  });
+})();
+</script>
+</body>
+</html>
