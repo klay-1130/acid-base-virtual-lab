@@ -249,11 +249,18 @@
   }
 
   /* ---------- Exp 1: indicator picker ---------- */
+  .indicator-picker-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
   .indicator-picker {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
-    margin-bottom: 18px;
   }
   .ind-btn {
     appearance: none;
@@ -591,10 +598,13 @@
       <h2>실험 1 — 지시약으로 산·염기 구별하기</h2>
       <p class="card-note">아래에서 지시약을 하나 고른 뒤, 시험관 밑의 약자 버튼(메·B·페)을 눌러 그 용액에 떨어뜨려 보세요. 세 지시약을 모두 시험하면 자동으로 액성이 판별됩니다.</p>
 
-      <div class="indicator-picker" role="group" aria-label="지시약 선택">
-        <button class="ind-btn" data-ind="mred" aria-pressed="true"><span class="swatch" style="background:#c94b3f"></span>메틸레드 용액</button>
-        <button class="ind-btn" data-ind="btb" aria-pressed="false"><span class="swatch" style="background:#4f9e6c"></span>BTB 용액</button>
-        <button class="ind-btn" data-ind="phen" aria-pressed="false"><span class="swatch" style="background:#c65a9e"></span>페놀프탈레인 용액</button>
+      <div class="indicator-picker-row">
+        <div class="indicator-picker" role="group" aria-label="지시약 선택">
+          <button class="ind-btn" data-ind="mred" aria-pressed="true"><span class="swatch" style="background:#c94b3f"></span>메틸레드 용액</button>
+          <button class="ind-btn" data-ind="btb" aria-pressed="false"><span class="swatch" style="background:#4f9e6c"></span>BTB 용액</button>
+          <button class="ind-btn" data-ind="phen" aria-pressed="false"><span class="swatch" style="background:#c65a9e"></span>페놀프탈레인 용액</button>
+        </div>
+        <button class="btn ghost" id="resetExp1" type="button">시험관 초기화</button>
       </div>
 
       <div class="tube-grid" id="tubeGrid"></div>
@@ -865,6 +875,20 @@
       verdictCell.innerHTML = '<span class="pill ' + c.key + '">' + c.label + "</span>";
     }
   }
+
+  document.getElementById("resetExp1").addEventListener("click", function () {
+    solutions.forEach(function (s) {
+      results[s.id] = {};
+      var liquid = document.getElementById("liquid-" + s.id);
+      liquid.style.background = "";
+      liquid.classList.add("empty");
+      indicators.forEach(function (ind) {
+        document.getElementById("drop-" + s.id + "-" + ind.id).classList.remove("done");
+        document.getElementById("log-" + s.id + "-" + ind.id).textContent = "-";
+      });
+      document.getElementById("log-" + s.id + "-verdict").innerHTML = '<span class="pill pending">미확인</span>';
+    });
+  });
 
   /* ---------------- Experiment 2: titration ---------------- */
   var hclVolume = 10; // mL of HCl in the flask (adjustable)
