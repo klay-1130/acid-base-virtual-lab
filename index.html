@@ -596,7 +596,7 @@
   <section class="panel active" id="p1">
     <div class="card">
       <h2>실험 1 — 지시약으로 산·염기 구별하기</h2>
-      <p class="card-note">아래에서 지시약을 하나 고른 뒤, 시험관 밑의 약자 버튼(메·B·페)을 눌러 그 용액에 떨어뜨려 보세요. 세 지시약을 모두 시험하면 자동으로 액성이 판별됩니다.</p>
+      <p class="card-note">아래에서 지시약을 하나 고른 뒤, 시험관 밑의 약자 버튼(메·B·페)을 눌러 그 용액에 떨어뜨려 보세요. 세 지시약을 모두 시험하면 자동으로 액성이 판별됩니다. "시험관 초기화"를 누르면 시험관의 색만 비워지고, 관찰 기록표의 결과는 그대로 남습니다.</p>
 
       <div class="indicator-picker-row">
         <div class="indicator-picker" role="group" aria-label="지시약 선택">
@@ -877,16 +877,14 @@
   }
 
   document.getElementById("resetExp1").addEventListener("click", function () {
+    // 시험관의 색만 비우고, 관찰 기록표에 이미 기록된 결과는 그대로 남겨둔다.
     solutions.forEach(function (s) {
-      results[s.id] = {};
       var liquid = document.getElementById("liquid-" + s.id);
       liquid.style.background = "";
       liquid.classList.add("empty");
       indicators.forEach(function (ind) {
         document.getElementById("drop-" + s.id + "-" + ind.id).classList.remove("done");
-        document.getElementById("log-" + s.id + "-" + ind.id).textContent = "-";
       });
-      document.getElementById("log-" + s.id + "-verdict").innerHTML = '<span class="pill pending">미확인</span>';
     });
   });
 
