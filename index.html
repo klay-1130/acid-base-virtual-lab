@@ -596,7 +596,7 @@
   <section class="panel active" id="p1">
     <div class="card">
       <h2>실험 1 — 지시약으로 산·염기 구별하기</h2>
-      <p class="card-note">아래에서 지시약을 하나 고른 뒤, 시험관 밑의 약자 버튼(메·B·페)을 눌러 그 용액에 떨어뜨려 보세요. 세 지시약을 모두 시험하면 자동으로 액성이 판별됩니다. "시험관 초기화"를 누르면 시험관의 색만 비워지고, 관찰 기록표의 결과는 그대로 남습니다.</p>
+      <p class="card-note">아래에서 시험관 밑의 약자 버튼(메·B·페)을 눌러 그 용액에 지시약을 떨어뜨려 보세요. 버튼을 다시 누르면 시험관의 색이 꺼집니다(온/오프). 세 지시약을 모두 시험하면 자동으로 액성이 판별됩니다. "시험관 초기화"를 누르면 시험관의 색만 비워지고, 관찰 기록표의 결과는 그대로 남습니다.</p>
 
       <div class="indicator-picker-row">
         <div class="indicator-picker" role="group" aria-label="지시약 선택">
@@ -802,7 +802,8 @@
 
   var currentIndicator = "mred";
   var results = {}; // results[solutionId][indicatorId] = {css,label}
-  solutions.forEach(function (s) { results[s.id] = {}; });
+  var activeIndicator = {}; // activeIndicator[solutionId] = indicatorId currently shown in the tube, or null
+  solutions.forEach(function (s) { results[s.id] = {}; activeIndicator[s.id] = null; });
 
   var indBtns = Array.prototype.slice.call(document.querySelectorAll(".ind-btn"));
   indBtns.forEach(function (b) {
@@ -841,6 +842,21 @@
       btn.title = ind.label + " 떨어뜨리기";
       btn.id = "drop-" + s.id + "-" + ind.id;
       btn.addEventListener("click", function () {
+        if (activeIndicator[s.id] === ind.id) {
+          // toggle off: same indicator pressed again, empty the tube
+          activeIndicator[s.id] = null;
+          liquid.style.background = "";
+          liquid.classList.add("empty");
+          btn.classList.remove("done");
+          return;
+        }
+        // switch on: only one indicator's color can show in the tube at a time
+        var prevId = activeIndicator[s.id];
+        if (prevId) {
+          var prevBtn = document.getElementById("drop-" + s.id + "-" + prevId);
+          if (prevBtn) prevBtn.classList.remove("done");
+        }
+        activeIndicator[s.id] = ind.id;
         var res = indicatorColor(ind.id, s.ph);
         results[s.id][ind.id] = res;
         liquid.classList.remove("empty");
@@ -887,6 +903,7 @@
   document.getElementById("resetExp1").addEventListener("click", function () {
     // 시험관의 색만 비우고, 관찰 기록표에 이미 기록된 결과는 그대로 남겨둔다.
     solutions.forEach(function (s) {
+      activeIndicator[s.id] = null;
       var liquid = document.getElementById("liquid-" + s.id);
       liquid.style.background = "";
       liquid.classList.add("empty");
