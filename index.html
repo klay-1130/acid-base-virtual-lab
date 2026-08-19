@@ -659,9 +659,17 @@
               <div class="value" id="tempReadout">20.0℃</div>
             </div>
           </div>
+          <div class="hcl-control">
+            <span class="hcl-label">정밀 측정 단위</span>
+            <div class="stepper">
+              <button class="stepper-btn" id="fineMinus" type="button" aria-label="정밀 측정 단위 줄이기">&minus;</button>
+              <span class="stepper-value" id="fineStepLabel">0.10 mL</span>
+              <button class="stepper-btn" id="finePlus" type="button" aria-label="정밀 측정 단위 늘리기">+</button>
+            </div>
+          </div>
           <div class="btn-row">
             <button class="btn" id="addCoarse">+1 mL 추가</button>
-            <button class="btn secondary" id="addFine">+0.2 mL (정밀 관찰)</button>
+            <button class="btn secondary" id="addFine">+0.10 mL 추가 (정밀 관찰)</button>
             <button class="btn ghost" id="resetTitration">적정 초기화</button>
           </div>
         </div>
@@ -684,7 +692,7 @@
         <h3>미션 — 당량점(중화점)을 찾아라</h3>
         <p>플라스크 속 pH가 7에 가까워지고 BTB 용액이 초록색으로 변하는 순간이 당량점입니다. 이때 온도 그래프도 가장 높은 지점을 지납니다. 염산의 부피를 바꾸면 당량점의 위치도 함께 바뀝니다. 당량점까지 넣은 NaOH의 부피(mL)를 예상해 입력해 보세요.</p>
         <div class="mission-form">
-          <input type="number" id="missionInput" min="0" max="40" step="0.1" placeholder="예: 10" aria-label="당량점 부피 입력(mL)">
+          <input type="number" id="missionInput" min="0" max="40" step="0.01" placeholder="예: 10" aria-label="당량점 부피 입력(mL)">
           <button class="btn" id="checkMission">확인하기</button>
         </div>
         <div class="feedback" id="missionFeedback"></div>
@@ -941,6 +949,20 @@
   var hclMinusBtn = document.getElementById("hclMinus");
   var hclPlusBtn = document.getElementById("hclPlus");
   var missionInputEl = document.getElementById("missionInput");
+  var fineStep = 0.1; // mL, adjustable 0.01–0.1
+  var fineStepLabel = document.getElementById("fineStepLabel");
+  var fineMinusBtn = document.getElementById("fineMinus");
+  var finePlusBtn = document.getElementById("finePlus");
+  var addFineBtn = document.getElementById("addFine");
+
+  function setFineStep(next) {
+    next = Math.round(Math.max(0.01, Math.min(0.1, next)) * 100) / 100;
+    fineStep = next;
+    fineStepLabel.textContent = fineStep.toFixed(2) + " mL";
+    addFineBtn.textContent = "+" + fineStep.toFixed(2) + " mL 추가 (정밀 관찰)";
+    fineMinusBtn.disabled = fineStep <= 0.01;
+    finePlusBtn.disabled = fineStep >= 0.1;
+  }
 
   function drawApparatus() {
     var ph = phAt(volume);
@@ -1003,7 +1025,7 @@
       '<rect x="' + (thermoX - thermoStemW / 2 + 1.5) + '" y="' + thermoFillY + '" width="' + (thermoStemW - 3) + '" height="' + thermoFillH + '" fill="' + thermoColor + '"/>' +
       '<circle cx="' + thermoX + '" cy="' + thermoBulbY + '" r="' + thermoBulbR + '" fill="' + thermoColor + '" stroke="var(--line-strong)" stroke-width="1.5"/>';
 
-    volReadout.textContent = volume.toFixed(1) + " mL";
+    volReadout.textContent = volume.toFixed(2) + " mL";
     phReadout.textContent = ph.toFixed(1);
     btbColorReadout.textContent = btbColorName(ph);
     tempReadout.textContent = temp.toFixed(1) + "℃";
@@ -1079,7 +1101,7 @@
   }
 
   function addVolume(delta) {
-    volume = Math.min(maxVolume, Math.round((volume + delta) * 10) / 10);
+    volume = Math.min(maxVolume, Math.round((volume + delta) * 100) / 100);
     var ph = phAt(volume);
     var temp = tempAt(volume);
     points.push({ v: volume, ph: ph, temp: temp });
@@ -1114,8 +1136,10 @@
   }
 
   document.getElementById("addCoarse").addEventListener("click", function () { addVolume(1); });
-  document.getElementById("addFine").addEventListener("click", function () { addVolume(0.2); });
+  addFineBtn.addEventListener("click", function () { addVolume(fineStep); });
   document.getElementById("resetTitration").addEventListener("click", resetTitrationState);
+  fineMinusBtn.addEventListener("click", function () { setFineStep(fineStep - 0.01); });
+  finePlusBtn.addEventListener("click", function () { setFineStep(fineStep + 0.01); });
   hclMinusBtn.addEventListener("click", function () { setHclVolume(hclVolume - 1); });
   hclPlusBtn.addEventListener("click", function () { setHclVolume(hclVolume + 1); });
 
@@ -1145,6 +1169,7 @@
   hclMinusBtn.disabled = hclVolume <= 5;
   hclPlusBtn.disabled = hclVolume >= 20;
   missionInputEl.max = maxVolume;
+  setFineStep(fineStep);
   drawApparatus();
   drawGraph();
   drawTempGraph();
