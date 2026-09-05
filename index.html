@@ -628,7 +628,7 @@
   <section class="panel" id="p2">
     <div class="card">
       <h2>실험 2 — 중화 적정 시뮬레이션</h2>
-      <p class="card-note">삼각플라스크에는 묽은 염산(HCl)과 BTB 용액 두 방울이 들어 있습니다. 아래에서 염산의 부피를 정한 뒤, 뷰렛의 수산화나트륨(NaOH) 수용액을 조금씩 떨어뜨리며 pH·지시약 색·온도가 함께 변하는 것을 관찰하세요. 중화반응은 열을 내는 발열 반응입니다.</p>
+      <p class="card-note">삼각플라스크에는 묽은 염산(HCl)과 BTB 용액 두 방울이 들어 있습니다. 아래에서 염산의 부피·몰농도와 수산화나트륨(NaOH)의 몰농도를 정한 뒤, 뷰렛의 수산화나트륨 수용액을 조금씩 떨어뜨리며 pH·지시약 색·온도가 함께 변하는 것을 관찰하세요. 농도가 다르면 당량점의 위치와 발생하는 열의 양도 달라집니다. 중화반응은 열을 내는 발열 반응입니다.</p>
 
       <div class="titration-grid">
         <div class="apparatus">
@@ -638,6 +638,22 @@
               <button class="stepper-btn" id="hclMinus" type="button" aria-label="염산 부피 줄이기">&minus;</button>
               <span class="stepper-value" id="hclVolLabel">10 mL</span>
               <button class="stepper-btn" id="hclPlus" type="button" aria-label="염산 부피 늘리기">+</button>
+            </div>
+          </div>
+          <div class="hcl-control">
+            <span class="hcl-label">염산(HCl) 몰농도</span>
+            <div class="stepper">
+              <button class="stepper-btn" id="hclConcMinus" type="button" aria-label="염산 몰농도 줄이기">&minus;</button>
+              <span class="stepper-value" id="hclConcLabel">1.0 M</span>
+              <button class="stepper-btn" id="hclConcPlus" type="button" aria-label="염산 몰농도 늘리기">+</button>
+            </div>
+          </div>
+          <div class="hcl-control">
+            <span class="hcl-label">수산화나트륨(NaOH) 몰농도</span>
+            <div class="stepper">
+              <button class="stepper-btn" id="naohConcMinus" type="button" aria-label="수산화나트륨 몰농도 줄이기">&minus;</button>
+              <span class="stepper-value" id="naohConcLabel">1.0 M</span>
+              <button class="stepper-btn" id="naohConcPlus" type="button" aria-label="수산화나트륨 몰농도 늘리기">+</button>
             </div>
           </div>
           <svg id="apparatusSvg" viewBox="0 0 220 320" width="220" height="320" role="img" aria-label="뷰렛, 삼각플라스크, 온도계 장치도"></svg>
@@ -915,12 +931,24 @@
 
   /* ---------------- Experiment 2: titration ---------------- */
   var hclVolume = 10; // mL of HCl in the flask (adjustable)
+  var hclConc = 1.0; // mol/L
+  var naohConc = 1.0; // mol/L
   var volume = 0; // mL of NaOH added
-  var maxVolume = hclVolume * 2;
   var roomTemp = 20;
 
+  // 당량점 부피: 산의 몰수(hclVolume*hclConc)와 염기의 몰수(v*naohConc)가 같아지는 지점
+  function eqVolume() {
+    return (hclVolume * hclConc) / naohConc;
+  }
+  var maxVolume = Math.max(6, Math.min(60, Math.round(eqVolume() * 2)));
+  function updateMaxVolume() {
+    maxVolume = Math.max(6, Math.min(60, Math.round(eqVolume() * 2)));
+  }
+
   function phAt(v) {
-    var raw = 7 + 6 * Math.tanh((v - hclVolume) / 0.9);
+    var veq = eqVolume();
+    var width = Math.max(0.4, veq * 0.09);
+    var raw = 7 + 6 * Math.tanh((v - veq) / width);
     return Math.max(0.5, Math.min(13.5, raw));
   }
   function colorForPh(ph) {
@@ -933,18 +961,22 @@
     if (ph > 7.6) return "파란색";
     return "초록색";
   }
-  // 중화반응은 발열 반응: HCl이 모두 반응할 때까지(당량점까지) 열이 나며,
+  // 중화반응은 발열 반응: 산이 모두 반응할 때까지(당량점까지) 열이 나며,
   // 당량점을 넘어서면 반응은 더 진행되지 않고 늘어난 용액 부피만큼 희석되어 온도가 다시 내려간다.
-  // 반응한 산의 양과 전체 용액 부피가 함께 늘어나므로, 당량점의 최고 온도는 염산 부피와 무관하게 일정하다.
+  // 발생하는 열의 양은 반응한 산·염기의 몰수(농도×부피)에 비례한다.
   var heatK = 22;
   function tempAt(v) {
-    var reactedVol = Math.min(v, hclVolume);
+    var reactedMoles = Math.min(v * naohConc, hclVolume * hclConc);
     var totalVol = hclVolume + v;
-    var rise = (heatK * reactedVol) / totalVol;
+    var rise = (heatK * reactedMoles) / totalVol;
     return roomTemp + rise;
   }
+  // 현재 농도 설정에서 이론상 도달 가능한 최고 온도 상승폭(당량점 기준)
+  function maxExpectedRise() {
+    return Math.max(2, (heatK * hclConc * naohConc) / (hclConc + naohConc));
+  }
   function tempColor(t) {
-    var frac = Math.max(0, Math.min(1, (t - roomTemp) / 12));
+    var frac = Math.max(0, Math.min(1, (t - roomTemp) / maxExpectedRise()));
     var r = Math.round(90 + frac * (201 - 90));
     var g = Math.round(140 + frac * (80 - 140));
     var b = Math.round(160 + frac * (47 - 160));
@@ -965,6 +997,12 @@
   var hclVolLabel = document.getElementById("hclVolLabel");
   var hclMinusBtn = document.getElementById("hclMinus");
   var hclPlusBtn = document.getElementById("hclPlus");
+  var hclConcLabel = document.getElementById("hclConcLabel");
+  var hclConcMinusBtn = document.getElementById("hclConcMinus");
+  var hclConcPlusBtn = document.getElementById("hclConcPlus");
+  var naohConcLabel = document.getElementById("naohConcLabel");
+  var naohConcMinusBtn = document.getElementById("naohConcMinus");
+  var naohConcPlusBtn = document.getElementById("naohConcPlus");
   var missionInputEl = document.getElementById("missionInput");
   var fineStep = 0.1; // mL, adjustable 0.01–0.1
   var fineStepLabel = document.getElementById("fineStepLabel");
@@ -1017,7 +1055,7 @@
 
     // thermometer stuck into the flask liquid
     var thermoX = 178, thermoTop = 150, thermoBulbY = 292, thermoBulbR = 9, thermoStemW = 8;
-    var thermoFillFrac = Math.max(0, Math.min(1, (temp - roomTemp) / 12));
+    var thermoFillFrac = Math.max(0, Math.min(1, (temp - roomTemp) / maxExpectedRise()));
     var thermoStemBottom = thermoBulbY - thermoBulbR + 2;
     var thermoStemH = thermoStemBottom - thermoTop;
     var thermoFillH = thermoStemH * thermoFillFrac;
@@ -1065,7 +1103,7 @@
       gridlines += '<line x1="' + m.l + '" y1="' + y(ph) + '" x2="' + (w - m.r) + '" y2="' + y(ph) + '" stroke="var(--line)" stroke-width="1"/>';
       gridlines += '<text x="' + (m.l - 8) + '" y="' + (y(ph) + 4) + '" font-size="10" text-anchor="end" fill="var(--ink-faint)" font-family="var(--font-mono)">' + ph + "</text>";
     }
-    var volStep = maxVolume <= 20 ? 5 : 10;
+    var volStep = maxVolume <= 20 ? 5 : (maxVolume <= 40 ? 10 : 20);
     for (var v = 0; v <= maxVolume; v += volStep) {
       gridlines += '<line x1="' + x(v) + '" y1="' + m.t + '" x2="' + x(v) + '" y2="' + (h - m.b) + '" stroke="var(--line)" stroke-width="1"/>';
       gridlines += '<text x="' + x(v) + '" y="' + (h - m.b + 16) + '" font-size="10" text-anchor="middle" fill="var(--ink-faint)" font-family="var(--font-mono)">' + v + "</text>";
@@ -1087,7 +1125,7 @@
   function drawTempGraph() {
     var w = 460, h = 190, m = { l: 40, r: 16, t: 16, b: 34 };
     var innerW = w - m.l - m.r, innerH = h - m.t - m.b;
-    var tMin = roomTemp - 1, tMax = roomTemp + 14;
+    var tMin = roomTemp - 1, tMax = roomTemp + Math.ceil((maxExpectedRise() * 1.15) / 3) * 3;
     function x(v) { return m.l + (v / maxVolume) * innerW; }
     function y(t) { return m.t + (1 - (t - tMin) / (tMax - tMin)) * innerH; }
 
@@ -1096,13 +1134,13 @@
       gridlines += '<line x1="' + m.l + '" y1="' + y(t) + '" x2="' + (w - m.r) + '" y2="' + y(t) + '" stroke="var(--line)" stroke-width="1"/>';
       gridlines += '<text x="' + (m.l - 8) + '" y="' + (y(t) + 4) + '" font-size="10" text-anchor="end" fill="var(--ink-faint)" font-family="var(--font-mono)">' + t + "</text>";
     }
-    var volStep2 = maxVolume <= 20 ? 5 : 10;
+    var volStep2 = maxVolume <= 20 ? 5 : (maxVolume <= 40 ? 10 : 20);
     for (var v = 0; v <= maxVolume; v += volStep2) {
       gridlines += '<line x1="' + x(v) + '" y1="' + m.t + '" x2="' + x(v) + '" y2="' + (h - m.b) + '" stroke="var(--line)" stroke-width="1"/>';
       gridlines += '<text x="' + x(v) + '" y="' + (h - m.b + 16) + '" font-size="10" text-anchor="middle" fill="var(--ink-faint)" font-family="var(--font-mono)">' + v + "</text>";
     }
 
-    var eqX = x(hclVolume);
+    var eqX = x(eqVolume());
     var pathD = points.map(function (p, i) { return (i === 0 ? "M" : "L") + x(p.v) + "," + y(p.temp); }).join(" ");
     var dots = points.map(function (p) {
       return '<circle cx="' + x(p.v) + '" cy="' + y(p.temp) + '" r="3" fill="' + tempColor(p.temp) + '" stroke="var(--bg-panel)" stroke-width="1"/>';
@@ -1125,7 +1163,8 @@
     drawApparatus();
     drawGraph();
     drawTempGraph();
-    document.getElementById("addFine").disabled = !(volume >= hclVolume - 3 && volume < hclVolume + 3);
+    var veq = eqVolume();
+    document.getElementById("addFine").disabled = !(volume >= veq - 3 && volume < veq + 3);
     document.getElementById("addCoarse").disabled = volume >= maxVolume;
   }
 
@@ -1145,10 +1184,30 @@
   function setHclVolume(next) {
     next = Math.max(5, Math.min(20, next));
     hclVolume = next;
-    maxVolume = hclVolume * 2;
+    updateMaxVolume();
     hclVolLabel.textContent = hclVolume + " mL";
     hclMinusBtn.disabled = hclVolume <= 5;
     hclPlusBtn.disabled = hclVolume >= 20;
+    resetTitrationState();
+  }
+
+  function setHclConc(next) {
+    next = Math.round(Math.max(0.1, Math.min(2.0, next)) * 10) / 10;
+    hclConc = next;
+    updateMaxVolume();
+    hclConcLabel.textContent = hclConc.toFixed(1) + " M";
+    hclConcMinusBtn.disabled = hclConc <= 0.1;
+    hclConcPlusBtn.disabled = hclConc >= 2.0;
+    resetTitrationState();
+  }
+
+  function setNaohConc(next) {
+    next = Math.round(Math.max(0.1, Math.min(2.0, next)) * 10) / 10;
+    naohConc = next;
+    updateMaxVolume();
+    naohConcLabel.textContent = naohConc.toFixed(1) + " M";
+    naohConcMinusBtn.disabled = naohConc <= 0.1;
+    naohConcPlusBtn.disabled = naohConc >= 2.0;
     resetTitrationState();
   }
 
@@ -1159,6 +1218,10 @@
   finePlusBtn.addEventListener("click", function () { setFineStep(fineStep + 0.01); });
   hclMinusBtn.addEventListener("click", function () { setHclVolume(hclVolume - 1); });
   hclPlusBtn.addEventListener("click", function () { setHclVolume(hclVolume + 1); });
+  hclConcMinusBtn.addEventListener("click", function () { setHclConc(hclConc - 0.1); });
+  hclConcPlusBtn.addEventListener("click", function () { setHclConc(hclConc + 0.1); });
+  naohConcMinusBtn.addEventListener("click", function () { setNaohConc(naohConc - 0.1); });
+  naohConcPlusBtn.addEventListener("click", function () { setNaohConc(naohConc + 0.1); });
 
   document.getElementById("checkMission").addEventListener("click", function () {
     var input = document.getElementById("missionInput");
@@ -1169,9 +1232,10 @@
       fb.className = "feedback show bad";
       return;
     }
-    var within = Math.abs(guess - hclVolume) <= 1;
+    var veq = eqVolume();
+    var within = Math.abs(guess - veq) <= Math.max(0.5, veq * 0.1);
     if (within && volume >= guess) {
-      fb.textContent = "정답입니다! 약 " + hclVolume + " mL 부근에서 pH가 7에 가까워지며 산과 염기가 정확히 중화되어 초록색이 됩니다. 이 지점이 당량점입니다.";
+      fb.textContent = "정답입니다! 약 " + veq.toFixed(2) + " mL 부근에서 pH가 7에 가까워지며 산과 염기가 정확히 중화되어 초록색이 됩니다. 이 지점이 당량점입니다.";
       fb.className = "feedback show good";
     } else if (!within) {
       fb.textContent = "다시 생각해 보세요. 그래프에서 pH가 7, 색이 초록색에 가장 가까운 지점의 부피를 확인해 보세요.";
@@ -1185,6 +1249,12 @@
   document.getElementById("addFine").disabled = true;
   hclMinusBtn.disabled = hclVolume <= 5;
   hclPlusBtn.disabled = hclVolume >= 20;
+  hclConcLabel.textContent = hclConc.toFixed(1) + " M";
+  hclConcMinusBtn.disabled = hclConc <= 0.1;
+  hclConcPlusBtn.disabled = hclConc >= 2.0;
+  naohConcLabel.textContent = naohConc.toFixed(1) + " M";
+  naohConcMinusBtn.disabled = naohConc <= 0.1;
+  naohConcPlusBtn.disabled = naohConc >= 2.0;
   missionInputEl.max = maxVolume;
   setFineStep(fineStep);
   drawApparatus();
