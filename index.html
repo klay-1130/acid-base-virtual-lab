@@ -439,6 +439,22 @@
   .stepper-btn:disabled { opacity: 0.35; cursor: not-allowed; }
   .stepper-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .stepper-value { font-family: var(--font-mono); font-size: 13.5px; font-weight: 700; font-variant-numeric: tabular-nums; min-width: 44px; text-align: center; }
+  .conc-input-wrap { display: flex; align-items: center; gap: 6px; }
+  .conc-input {
+    font: inherit;
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    font-weight: 700;
+    width: 76px;
+    padding: 6px 8px;
+    border-radius: 7px;
+    border: 1.5px solid var(--line-strong);
+    background: var(--bg-panel);
+    color: var(--ink);
+    text-align: right;
+  }
+  .conc-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .conc-unit { font-size: 12.5px; font-weight: 700; color: var(--ink-faint); }
   .readout-row {
     display: flex;
     flex-wrap: wrap;
@@ -642,18 +658,16 @@
           </div>
           <div class="hcl-control">
             <span class="hcl-label">염산(HCl) 몰농도</span>
-            <div class="stepper">
-              <button class="stepper-btn" id="hclConcMinus" type="button" aria-label="염산 몰농도 줄이기">&minus;</button>
-              <span class="stepper-value" id="hclConcLabel">1.0 M</span>
-              <button class="stepper-btn" id="hclConcPlus" type="button" aria-label="염산 몰농도 늘리기">+</button>
+            <div class="conc-input-wrap">
+              <input type="number" class="conc-input" id="hclConcInput" min="0.001" max="1" step="0.001" value="1" aria-label="염산 몰농도 입력(M)">
+              <span class="conc-unit">M</span>
             </div>
           </div>
           <div class="hcl-control">
             <span class="hcl-label">수산화나트륨(NaOH) 몰농도</span>
-            <div class="stepper">
-              <button class="stepper-btn" id="naohConcMinus" type="button" aria-label="수산화나트륨 몰농도 줄이기">&minus;</button>
-              <span class="stepper-value" id="naohConcLabel">1.0 M</span>
-              <button class="stepper-btn" id="naohConcPlus" type="button" aria-label="수산화나트륨 몰농도 늘리기">+</button>
+            <div class="conc-input-wrap">
+              <input type="number" class="conc-input" id="naohConcInput" min="0.001" max="1" step="0.001" value="1" aria-label="수산화나트륨 몰농도 입력(M)">
+              <span class="conc-unit">M</span>
             </div>
           </div>
           <svg id="apparatusSvg" viewBox="0 0 220 320" width="220" height="320" role="img" aria-label="뷰렛, 삼각플라스크, 온도계 장치도"></svg>
@@ -997,12 +1011,8 @@
   var hclVolLabel = document.getElementById("hclVolLabel");
   var hclMinusBtn = document.getElementById("hclMinus");
   var hclPlusBtn = document.getElementById("hclPlus");
-  var hclConcLabel = document.getElementById("hclConcLabel");
-  var hclConcMinusBtn = document.getElementById("hclConcMinus");
-  var hclConcPlusBtn = document.getElementById("hclConcPlus");
-  var naohConcLabel = document.getElementById("naohConcLabel");
-  var naohConcMinusBtn = document.getElementById("naohConcMinus");
-  var naohConcPlusBtn = document.getElementById("naohConcPlus");
+  var hclConcInput = document.getElementById("hclConcInput");
+  var naohConcInput = document.getElementById("naohConcInput");
   var missionInputEl = document.getElementById("missionInput");
   var fineStep = 0.1; // mL, adjustable 0.01–0.1
   var fineStepLabel = document.getElementById("fineStepLabel");
@@ -1192,22 +1202,20 @@
   }
 
   function setHclConc(next) {
-    next = Math.round(Math.max(0.1, Math.min(2.0, next)) * 10) / 10;
+    if (isNaN(next)) next = hclConc;
+    next = Math.round(Math.max(0.001, Math.min(1, next)) * 1000) / 1000;
     hclConc = next;
     updateMaxVolume();
-    hclConcLabel.textContent = hclConc.toFixed(1) + " M";
-    hclConcMinusBtn.disabled = hclConc <= 0.1;
-    hclConcPlusBtn.disabled = hclConc >= 2.0;
+    hclConcInput.value = hclConc;
     resetTitrationState();
   }
 
   function setNaohConc(next) {
-    next = Math.round(Math.max(0.1, Math.min(2.0, next)) * 10) / 10;
+    if (isNaN(next)) next = naohConc;
+    next = Math.round(Math.max(0.001, Math.min(1, next)) * 1000) / 1000;
     naohConc = next;
     updateMaxVolume();
-    naohConcLabel.textContent = naohConc.toFixed(1) + " M";
-    naohConcMinusBtn.disabled = naohConc <= 0.1;
-    naohConcPlusBtn.disabled = naohConc >= 2.0;
+    naohConcInput.value = naohConc;
     resetTitrationState();
   }
 
@@ -1218,10 +1226,10 @@
   finePlusBtn.addEventListener("click", function () { setFineStep(fineStep + 0.01); });
   hclMinusBtn.addEventListener("click", function () { setHclVolume(hclVolume - 1); });
   hclPlusBtn.addEventListener("click", function () { setHclVolume(hclVolume + 1); });
-  hclConcMinusBtn.addEventListener("click", function () { setHclConc(hclConc - 0.1); });
-  hclConcPlusBtn.addEventListener("click", function () { setHclConc(hclConc + 0.1); });
-  naohConcMinusBtn.addEventListener("click", function () { setNaohConc(naohConc - 0.1); });
-  naohConcPlusBtn.addEventListener("click", function () { setNaohConc(naohConc + 0.1); });
+  hclConcInput.addEventListener("change", function () { setHclConc(parseFloat(hclConcInput.value)); });
+  hclConcInput.addEventListener("keydown", function (e) { if (e.key === "Enter") hclConcInput.blur(); });
+  naohConcInput.addEventListener("change", function () { setNaohConc(parseFloat(naohConcInput.value)); });
+  naohConcInput.addEventListener("keydown", function (e) { if (e.key === "Enter") naohConcInput.blur(); });
 
   document.getElementById("checkMission").addEventListener("click", function () {
     var input = document.getElementById("missionInput");
@@ -1249,12 +1257,8 @@
   document.getElementById("addFine").disabled = true;
   hclMinusBtn.disabled = hclVolume <= 5;
   hclPlusBtn.disabled = hclVolume >= 20;
-  hclConcLabel.textContent = hclConc.toFixed(1) + " M";
-  hclConcMinusBtn.disabled = hclConc <= 0.1;
-  hclConcPlusBtn.disabled = hclConc >= 2.0;
-  naohConcLabel.textContent = naohConc.toFixed(1) + " M";
-  naohConcMinusBtn.disabled = naohConc <= 0.1;
-  naohConcPlusBtn.disabled = naohConc >= 2.0;
+  hclConcInput.value = hclConc;
+  naohConcInput.value = naohConc;
   missionInputEl.max = maxVolume;
   setFineStep(fineStep);
   drawApparatus();
